@@ -1,0 +1,23 @@
+{
+  "name": "tmf-demo-clickthrough",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "capture:a": "node --env-file-if-exists=.env capture/phase-a.mjs",
+    "capture:a2": "node --env-file-if-exists=.env capture/phase-a2.mjs",
+    "capture:b1": "node --env-file-if-exists=.env capture/phase-b1.mjs",
+    "capture:b2": "node --env-file-if-exists=.env capture/phase-b2.mjs",
+    "capture:b3": "node --env-file-if-exists=.env capture/phase-b3.mjs",
+    "capture:b4": "node --env-file-if-exists=.env capture/phase-b4.mjs",
+    "reset": "node --env-file-if-exists=.env capture/reset.mjs",
+    "assemble": "node capture/assemble.mjs",
+    "build": "node capture/build.mjs",
+    "verify": "node capture/verify-player.mjs",
+    "serve": "node -e \"const h=require('http'),f=require('fs'),p=require('path');h.createServer((q,s)=>{let u=decodeURIComponent(q.url.split('?')[0]);if(u==='/')u='/index.html';const fp=p.join('dist',u);f.readFile(fp,(e,d)=>{if(e){s.writeHead(404);return s.end('not found')}const t={'.html':'text/html','.jpg':'image/jpeg','.json':'application/json','.png':'image/png'}[p.extname(fp)]||'text/plain';s.writeHead(200,{'content-type':t});s.end(d)})}).listen(8099,()=>console.log('http://localhost:8099'))\""
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
+  },
+  "description": "Interactive click-through of the TMF Unified Client Portal, captured from the live Appian environment."
+}

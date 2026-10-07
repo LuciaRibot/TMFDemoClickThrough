@@ -1,0 +1,9 @@
+node_modules/
+.env
+
+# Capture working files — not part of the deployable site
+recon/
+capture/state/
+capture/backup/
+inbox/
+.DS_Store

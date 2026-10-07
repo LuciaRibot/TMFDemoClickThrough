@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+  :root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  body { margin: 0; font: 14px system-ui, sans-serif; background: #fafafa; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+<title>TMF Portal Walkthrough</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+/* Layout: the screenshot is the stage, held at the capture's own 16:10 and
+   centred under a slim bar. The dim mask, hotspot and tooltip are positioned
+   inside that frame in capture percentages, so they stay locked to the pixels
+   they were measured against at any screen size. Chapter nav slides in. */
+:root {
+  --paper:#F2EEEB; --surface:#FFFFFF; --sunk:#E8E2DD;
+  --ink:#1A1718; --muted:#6E6762; --line:#DED7D1;
+  --brand:#E8272C; --brand-deep:#B5171C; --on-brand:#FFFFFF;
+  --mask:rgba(22,19,20,.62);
+  --client:#17646F; --tmf:#B5171C; --admin:#44566B;
+  --ok:#117C00;
+  --display:'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --body:'IBM Plex Sans', system-ui, -apple-system, Segoe UI, sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --bar:54px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:#131519; --surface:#1C1F24; --sunk:#262A30;
+    --ink:#F0EDEA; --muted:#9C958F; --line:#2F343B;
+    --brand:#FF5A5E; --brand-deep:#E8272C; --on-brand:#1A0406;
+    --mask:rgba(6,7,9,.74);
+    --client:#4FB3C0; --tmf:#FF5A5E; --admin:#8FA6BF;
+    --ok:#4ADE80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper:#131519; --surface:#1C1F24; --sunk:#262A30;
+  --ink:#F0EDEA; --muted:#9C958F; --line:#2F343B;
+  --brand:#FF5A5E; --brand-deep:#E8272C; --on-brand:#1A0406;
+  --mask:rgba(6,7,9,.74);
+  --client:#4FB3C0; --tmf:#FF5A5E; --admin:#8FA6BF;
+  --ok:#4ADE80;
+  color-scheme: dark;
+}
+
+/* The publish skeleton supplies this, a standalone deploy does not — and
+   .sheet{display:grid} outranks the browser default, so a hidden cover or end
+   screen would stay on top and swallow every click. */
+[hidden] { display: none !important; }
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: var(--body); font-size: 15px; line-height: 1.5;
+  overflow: hidden;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2.5px solid var(--brand); outline-offset: 2px; border-radius: 3px; }
+
+/* ----------------------------------------------------------- top bar */
+.bar {
+  position: fixed; inset: 0 0 auto 0; height: var(--bar);
+  padding: 0 14px; padding-top: env(safe-area-inset-top, 0px);
+  display: flex; align-items: center; gap: 12px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line); z-index: 40;
+}
+.mark {
+  font-family: var(--display); font-weight: 800; font-size: 13px; letter-spacing: .14em;
+  background: var(--brand); color: var(--on-brand); padding: 5px 7px; border-radius: 3px;
+  flex: none;
+}
+.where { min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+.where b {
+  font-family: var(--display); font-weight: 700; font-size: 14px; line-height: 1.15;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.where span {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.spacer { flex: 1 1 auto; }
+.count {
+  font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums;
+  color: var(--muted); flex: none;
+}
+.btn {
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  border-radius: 6px; height: 32px; padding: 0 11px; font-size: 13px; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 6px; flex: none;
+}
+.btn:hover { border-color: var(--brand); color: var(--brand); }
+.btn[aria-pressed="true"] { background: var(--sunk); }
+.btn.icon { width: 32px; padding: 0; justify-content: center; font-size: 15px; }
+
+.progress { position: fixed; top: 0; left: 0; height: 2px; background: var(--brand); z-index: 50; transition: width .28s ease; }
+
+/* ----------------------------------------------------------- stage */
+.stage {
+  position: absolute; inset: calc(var(--bar) + env(safe-area-inset-top, 0px)) 0 0 0;
+  display: grid; place-items: center; padding: 18px;
+}
+.frame {
+  position: relative; aspect-ratio: 16 / 10;
+  width: 100%; max-width: 100%; max-height: 100%;
+  border-radius: 10px; overflow: hidden;
+  background: var(--sunk);
+  box-shadow: 0 18px 50px rgba(0,0,0,.22), 0 0 0 1px var(--line);
+}
+.frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* The dim: one transparent box with an enormous shadow, so the cutout is the
+   only lit area. No second element and no SVG mask to keep in sync. */
+.spot {
+  position: absolute; border-radius: 7px; pointer-events: none;
+  box-shadow: 0 0 0 100vmax var(--mask); outline: 2px solid var(--brand);
+  outline-offset: 1px; transition: all .3s cubic-bezier(.4,0,.2,1);
+}
+.veil { position: absolute; inset: 0; background: var(--mask); pointer-events: none; }
+
+.hot {
+  position: absolute; border: 0; background: transparent; padding: 0;
+  border-radius: 7px; z-index: 3; cursor: pointer;
+  transition: all .3s cubic-bezier(.4,0,.2,1);
+}
+.hot::after {
+  content: ''; position: absolute; inset: -5px; border-radius: 10px;
+  border: 2.5px solid var(--brand); animation: pulse 1.9s ease-out infinite;
+}
+@keyframes pulse {
+  0%   { transform: scale(1);    opacity: .95; }
+  70%  { transform: scale(1.14); opacity: 0; }
+  100% { transform: scale(1.14); opacity: 0; }
+}
+
+/* ----------------------------------------------------------- tooltip */
+.tip {
+  position: absolute; z-index: 6; width: min(360px, 78%);
+  background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: 0 14px 40px rgba(0,0,0,.3);
+  padding: 15px 16px 14px;
+  transition: top .3s cubic-bezier(.4,0,.2,1), left .3s cubic-bezier(.4,0,.2,1);
+}
+.tip.card { /* caption beat: no target, so it sits in the middle */
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: min(560px, 86%); padding: 22px 24px;
+}
+.eyebrow {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--muted); display: flex; align-items: center; gap: 8px; margin-bottom: 7px;
+}
+.who { font-weight: 600; }
+.who[data-p="sofia"], .who[data-p="marcus"] { color: var(--client); }
+.who[data-p="daniel"] { color: var(--tmf); }
+.who[data-p="lucia"] { color: var(--admin); }
+.tip h2 {
+  font-family: var(--display); font-weight: 700; font-size: 17px; line-height: 1.25;
+  margin: 0 0 6px; text-wrap: balance;
+}
+.tip.card h2 { font-size: 23px; }
+.tip p { margin: 0; font-size: 13.5px; line-height: 1.52; color: var(--ink); }
+.tip.card p { font-size: 15px; }
+.say {
+  margin-top: 11px; padding: 9px 11px; border-radius: 7px;
+  background: var(--sunk); border-left: 3px solid var(--brand);
+  font-size: 12.5px; line-height: 1.45; color: var(--ink);
+}
+.say b {
+  display: block; font-family: var(--mono); font-size: 9.5px; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 3px; font-weight: 500;
+}
+.tipnav { display: flex; align-items: center; gap: 8px; margin-top: 13px; }
+.next {
+  background: var(--brand); color: var(--on-brand); border: 0; border-radius: 6px;
+  height: 32px; padding: 0 13px; font-weight: 600; font-size: 13px;
+}
+.next:hover { background: var(--brand-deep); }
+.hint { font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
+
+/* ----------------------------------------------------------- chapters */
+.rail {
+  position: fixed; top: calc(var(--bar) + env(safe-area-inset-top, 0px)); bottom: 0; left: 0;
+  width: 290px; max-width: 84vw; z-index: 45;
+  background: var(--surface); border-right: 1px solid var(--line);
+  padding: 14px; overflow-y: auto;
+  transform: translateX(-102%); transition: transform .26s ease;
+}
+.rail[data-open="true"] { transform: none; }
+.rail h3 {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); margin: 0 0 10px; font-weight: 500;
+}
+.chap {
+  display: flex; gap: 11px; align-items: baseline; width: 100%; text-align: left;
+  background: none; border: 0; border-radius: 7px; padding: 9px 10px; margin-bottom: 2px;
+}
+.chap:hover { background: var(--sunk); }
+.chap[aria-current="true"] { background: var(--sunk); }
+.chap[aria-current="true"] .cn { color: var(--brand); }
+.cn { font-family: var(--mono); font-size: 11px; color: var(--muted); flex: none; width: 18px; font-variant-numeric: tabular-nums; }
+.ct { font-size: 13.5px; font-weight: 500; line-height: 1.3; }
+.cc { font-family: var(--mono); font-size: 10.5px; color: var(--muted); margin-left: auto; flex: none; }
+
+/* ----------------------------------------------------------- overlays */
+.sheet {
+  position: fixed; inset: 0; z-index: 60; background: var(--paper);
+  display: grid; place-items: center; padding: 28px 20px;
+  overflow-y: auto;
+}
+.sheetin { width: min(760px, 100%); }
+.kicker {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--brand); margin-bottom: 14px;
+}
+.sheet h1 {
+  font-family: var(--display); font-weight: 800; font-size: clamp(30px, 6vw, 52px);
+  line-height: 1.02; margin: 0 0 12px; letter-spacing: -.02em; text-wrap: balance;
+}
+.lede { font-size: clamp(15px, 2.2vw, 18px); color: var(--muted); margin: 0 0 24px; max-width: 54ch; }
+.toc { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 9px; overflow: hidden; margin-bottom: 26px; }
+.toc div { background: var(--surface); padding: 11px 13px; }
+.toc b { display: block; font-size: 13px; font-weight: 600; }
+.toc span { font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
+.cta {
+  background: var(--brand); color: var(--on-brand); border: 0; border-radius: 8px;
+  height: 46px; padding: 0 24px; font-weight: 700; font-size: 15px;
+  font-family: var(--display); letter-spacing: .01em;
+}
+.cta:hover { background: var(--brand-deep); }
+.meta { margin-top: 18px; font-family: var(--mono); font-size: 11px; color: var(--muted); line-height: 1.7; }
+
+@media (max-width: 760px) {
+  :root { --bar: 50px; }
+  /* The tooltip docks over the bottom of the screen, so reserve that space
+     and centre the frame in what is left rather than stranding it at the top. */
+  .stage { padding: 10px 10px 44svh; align-content: center; }
+  .frame { border-radius: 7px; }
+  /* The tooltip stops chasing the hotspot and docks, so it never covers it. */
+  .tip, .tip.card {
+    position: fixed; left: 0; right: 0; bottom: 0; top: auto; transform: none;
+    width: 100%; max-width: 100%; border-radius: 13px 13px 0 0;
+    border-left: 0; border-right: 0; border-bottom: 0;
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+    max-height: 56svh; overflow-y: auto;
+  }
+  .where span { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+  .hot::after { animation: none; opacity: .95; }
+}
+</style>
+
+<div class="progress" id="prog" style="width:0"></div>
+
+<header class="bar">
+  <span class="mark">TMF</span>
+  <button class="btn icon" id="chapBtn" aria-pressed="false" aria-label="Chapters" title="Chapters (C)">☰</button>
+  <div class="where">
+    <b id="wTitle">Walkthrough</b>
+    <span id="wChap">Unified Client Portal</span>
+  </div>
+  <div class="spacer"></div>
+  <span class="count" id="count">—</span>
+  <button class="btn icon" id="prev" aria-label="Previous step" title="Previous (←)">‹</button>
+  <button class="btn icon" id="next" aria-label="Next step" title="Next (→)">›</button>
+  <button class="btn icon" id="theme" aria-label="Switch theme" title="Theme">◐</button>
+</header>
+
+<nav class="rail" id="rail" data-open="false" aria-label="Chapters">
+  <h3>Chapters</h3>
+  <div id="chapList"></div>
+</nav>
+
+<main class="stage">
+  <div class="frame" id="frame">
+    <img id="shot" alt="">
+    <div class="veil" id="veil" hidden></div>
+    <div class="spot" id="spot" hidden></div>
+    <button class="hot" id="hot" hidden aria-label="Continue"></button>
+    <div class="tip" id="tip" role="status" aria-live="polite">
+      <div class="eyebrow"><span class="who" id="tWho"></span><span id="tAct"></span></div>
+      <h2 id="tTitle"></h2>
+      <p id="tBody"></p>
+      <div class="say" id="tSay" hidden><b>Say</b><span id="tSayText"></span></div>
+      <div class="tipnav">
+        <button class="next" id="tNext">Next</button>
+        <span class="hint">→ or Space</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<section class="sheet" id="cover">
+  <div class="sheetin">
+    <div class="kicker">Interactive walkthrough · captured from the live environment</div>
+    <h1 id="cvTitle">TMF Unified Client Portal</h1>
+    <p class="lede" id="cvLede"></p>
+    <div class="toc" id="cvToc"></div>
+    <button class="cta" id="start">Start the walkthrough</button>
+    <div class="meta" id="cvMeta"></div>
+  </div>
+</section>
+
+<section class="sheet" id="end" hidden>
+  <div class="sheetin">
+    <div class="kicker">End of walkthrough</div>
+    <h1>Four personas, one platform, one set of rules</h1>
+    <p class="lede">Every status in this walkthrough was earned: the application went Live because an endpoint answered, the access was granted because a named person approved it, and the billing query closed because someone explained why. All of it is configuration in Appian.</p>
+    <div class="toc" id="endToc"></div>
+    <button class="cta" id="restart">Start again</button>
+    <div class="meta" id="endMeta"></div>
+  </div>
+</section>
+
+<script id="data" type="application/json">{"title":"TMF Unified Client Portal","subtitle":"An interactive walkthrough of the live demo environment","captured":"2026-10-07","chapters":[{"name":"Access journey","from":1,"count":8},{"name":"AI copilot","from":9,"count":11},{"name":"Identity & administration","from":20,"count":7},{"name":"Documents & invoices","from":27,"count":29},{"name":"Requesting documents","from":56,"count":16},{"name":"Analytics","from":72,"count":7},{"name":"Onboarding & integration","from":79,"count":5},{"name":"Security & compliance","from":84,"count":3}],"steps":[{"n":1,"chapter":"Access journey","title":"One front door for the client","body":"Sofia signs in once through Meridian’s own Entra ID and lands on her portal — five applications, 34 entities, 11 jurisdictions. She never created a TMF password.","say":"This is the single front door. Everything behind it is TMF’s existing systems of record.","persona":"sofia","action":"none","shot":"shots/01.jpg","target":null},{"n":2,"chapter":"Access journey","title":"The band that sets her agenda","body":"Four numbers, chosen so she knows within a second whether today needs her: actions for you, filings due, overdue, open queries.","say":"Not a generic dashboard — her agenda.","persona":"sofia","action":"none","shot":"shots/01.jpg","target":{"x":61.388,"y":21.516,"w":5.764,"h":4.089}},{"n":3,"chapter":"Access journey","title":"Her application catalogue","body":"Every TMF and partner application she holds, reachable with one sign-on. Four read Available.","say":null,"persona":"sofia","action":"none","shot":"shots/01.jpg","target":{"x":3.887,"y":64.266,"w":14.542,"h":3.667}},{"n":4,"chapter":"Access journey","title":"The one she cannot see","body":"Payroll Partner Platform reads Not subscribed. Access is granted per application, not per service line — and the tile says so rather than hiding it.","say":"This gap is the story for the next five minutes.","persona":"sofia","action":"click","shot":"shots/04.jpg","target":{"x":6.525,"y":48.981,"w":11.9,"h":2.111}},{"n":5,"chapter":"Access journey","title":"What the portal knows about it","body":"The application record carries what it does, how access works, her active requests inside it and its recent documents — read live, not copied.","say":null,"persona":"sofia","action":"none","shot":"shots/05.jpg","target":{"x":3.887,"y":46.118,"w":5.894,"h":1.889}},{"n":6,"chapter":"Access journey","title":"Locked, with a route out","body":"Rather than a dead end, the record explains the block and offers Request access — routed to Meridian’s own delegated administrator, not to TMF IT.","say":null,"persona":"sofia","action":"none","shot":"shots/05.jpg","target":null},{"n":7,"chapter":"Access journey","title":"Audit trail, per application","body":"Every application record carries its own audit tab — who looked, who launched it, when.","say":null,"persona":"sofia","action":"click","shot":"shots/05.jpg","target":{"x":15.131,"y":16.995,"w":6.561,"h":3.422}},{"n":8,"chapter":"Access journey","title":"Evidence, not assertion","body":"Authentication, access grants and document reads against this application, with the actor named on every line.","say":null,"persona":"sofia","action":"none","shot":"shots/08.jpg","target":null},{"n":9,"chapter":"AI copilot","title":"The copilot sits on every page","body":"One assistant across both portals, scoped by the signed-in session. Expanding it does not take her anywhere.","say":null,"persona":"sofia","action":"click","shot":"shots/09.jpg","target":{"x":94.421,"y":39.142,"w":2.248,"h":2.111}},{"n":10,"chapter":"AI copilot","title":"Asking what she can reach","body":"A plain question, typed the way a client would type it.","say":null,"persona":"sofia","action":"type","shot":"shots/10.jpg","target":{"x":23.125,"y":47.62,"w":53.75,"h":4.799}},{"n":11,"chapter":"AI copilot","title":"Real figures, not a script","body":"It called TMF_clientApplications and read her actual entitlements — the same rule that draws the tiles. Four available, Payroll Partner Platform not subscribed.","say":"The tool call is on screen. This is her data, resolved from her session.","persona":"sofia","action":"none","shot":"shots/11.jpg","target":{"x":27.777,"y":11.96,"w":22.933,"h":2.111}},{"n":12,"chapter":"AI copilot","title":"The question a client actually asks","body":"She does not ask about entitlements. She asks why something is missing.","say":null,"persona":"sofia","action":"type","shot":"shots/11.jpg","target":{"x":23.125,"y":47.599,"w":53.75,"h":4.799}},{"n":13,"chapter":"AI copilot","title":"It names the approver","body":"It identifies the application, explains the subscription gap and names the person inside Meridian who can clear it.","say":null,"persona":"sofia","action":"none","shot":"shots/13.jpg","target":null},{"n":14,"chapter":"AI copilot","title":"Asking it to act","body":"From answering to doing — the same assistant, now proposing a transaction.","say":null,"persona":"sofia","action":"type","shot":"shots/13.jpg","target":{"x":23.125,"y":47.599,"w":53.75,"h":4.799}},{"n":15,"chapter":"AI copilot","title":"It proposes, then stops","body":"It states the application, the approver and the justification it will record — and waits. The agent proposes; the human decides.","say":"This pause is the governance. Nothing is written until she confirms.","persona":"sofia","action":"none","shot":"shots/15.jpg","target":null},{"n":16,"chapter":"AI copilot","title":"She confirms","body":"One word, and the copilot starts the same governed process the Request access button would have started.","say":null,"persona":"sofia","action":"type","shot":"shots/16.jpg","target":{"x":23.125,"y":95.155,"w":53.75,"h":4.799}},{"n":17,"chapter":"AI copilot","title":"It runs the real process","body":"The copilot hands off to TMF Service Access Request — the same governed process the Request access button starts. The tool call is on screen while it runs.","say":null,"persona":"sofia","action":"none","shot":"shots/17.jpg","target":null},{"n":18,"chapter":"AI copilot","title":"And what it refuses","body":"Another client’s name, asked directly and politely.","say":null,"persona":"sofia","action":"type","shot":"shots/18.jpg","target":{"x":23.125,"y":84.175,"w":53.75,"h":4.799}},{"n":19,"chapter":"AI copilot","title":"Tenancy is not negotiable","body":"Refused, and it says why. The organisation is resolved from her session before the model sees anything, so there is no phrasing that gets past it.","say":"The scope is decided in the tool, not in the prompt. Try the jailbreak if the room is security-minded — same answer.","persona":"sofia","action":"none","shot":"shots/19.jpg","target":null},{"n":20,"chapter":"Identity & administration","title":"What Marcus receives","body":"TMF house style, rendered from a versioned rule rather than a mail template — table-based with inline styles, so it survives Outlook and blocked images.","say":"The branded mail carries the context. Appian’s own notification carries the working task link — click through from that one.","persona":"marcus","action":"none","shot":"shots/20.jpg","target":null},{"n":21,"chapter":"Identity & administration","title":"The loop closes for Sofia","body":"Marcus approved inside Meridian. Her tile now reads Available with a launch link — no ticket ever reached TMF IT.","say":"Request, approval, entitlement and audit. That is the whole loop, and TMF was never in it.","persona":"sofia","action":"none","shot":"shots/23.jpg","target":{"x":6.525,"y":48.981,"w":11.9,"h":2.111}},{"n":22,"chapter":"Identity & administration","title":"And it is on her feed","body":"The notification names the approver and the time. The same event is on the audit trail an administrator can export.","say":null,"persona":"sofia","action":"none","shot":"shots/24.jpg","target":null},{"n":23,"chapter":"Identity & administration","title":"The administrator’s view","body":"Lucia is a TMF access controller. She sees Administration and nothing else — 18 client organisations, 4,286 external users, 23 applications, no open security findings.","say":"Same platform, a third set of rules. She cannot see a single client document.","persona":"lucia","action":"none","shot":"shots/25.jpg","target":{"x":58.61,"y":22.623,"w":5.393,"h":1.889}},{"n":24,"chapter":"Identity & administration","title":"Every client, its own identity provider","body":"Five organisations on screen, each federated to its own IdP — Entra, Okta, Ping, Google. Onboarding state is tracked per client.","say":null,"persona":"lucia","action":"click","shot":"shots/25.jpg","target":{"x":16.278,"y":53.031,"w":12.263,"h":5.733}},{"n":25,"chapter":"Identity & administration","title":"Federation, per client","body":"Meridian runs Entra ID over OpenID Connect with JIT provisioning, a named delegated administrator, and a second IdP for external advisers routed by URL.","say":"This panel is configuration shown as configuration — the metadata exchange is prepared, not a live round trip.","persona":"lucia","action":"none","shot":"shots/27.jpg","target":null},{"n":26,"chapter":"Identity & administration","title":"Access reviews, scheduled","body":"Quarterly recertification, a dormant-account sweep and third-party adviser access that expires with the engagement rather than outliving it.","say":null,"persona":"lucia","action":"none","shot":"shots/27.jpg","target":null},{"n":27,"chapter":"Documents & invoices","title":"Four repositories, one search","body":"SharePoint, OpenText, Box and the Appian Document Centre presented as one workspace. 15 documents in scope, surfaced through integration rather than copied.","say":"She never has to know which repository TMF happens to keep a thing in.","persona":"sofia","action":"none","shot":"shots/30.jpg","target":{"x":61.388,"y":25.892,"w":5.831,"h":1.889}},{"n":28,"chapter":"Documents & invoices","title":"Search spans all of them","body":"One box across document name, type and entity. Typing filters live, across every repository at once.","say":null,"persona":"sofia","action":"type","shot":"shots/30.jpg","target":{"x":3.887,"y":63.811,"w":92.227,"h":3.778}},{"n":29,"chapter":"Documents & invoices","title":"Filters a client actually wants","body":"Entity, service line, country, date range, source repository and status — and the result count tells her the scope is hers alone.","say":null,"persona":"sofia","action":"none","shot":"shots/32.jpg","target":{"x":65.833,"y":68.7,"w":8.028,"h":2.111}},{"n":30,"chapter":"Documents & invoices","title":"Open the February invoice","body":"She picks INV-2026-0388. It opens in the portal beside its own facts and actions — no download, no second system to log into.","say":null,"persona":"sofia","action":"click","shot":"shots/33.jpg","target":{"x":11.108,"y":49.049,"w":5.832,"h":1.889}},{"n":31,"chapter":"Documents & invoices","title":"Read it and act on it, same screen","body":"The document, its entity and jurisdiction, its status and the two things she can do with it, all in one pane. Raising a query is a click, not an email with an attachment.","say":"The preview renders the PDF inline here — it is blank in this capture only because the recorder had no PDF plugin.","persona":"sofia","action":"none","shot":"shots/34.jpg","target":{"x":46.389,"y":36.832,"w":11.694,"h":3.774}},{"n":32,"chapter":"Documents & invoices","title":"She raises a billing query","body":"The action is only offered on financial documents — raising one against a board resolution would be meaningless, so it is not there.","say":null,"persona":"sofia","action":"click","shot":"shots/34.jpg","target":{"x":46.389,"y":36.832,"w":11.694,"h":3.774}},{"n":33,"chapter":"Documents & invoices","title":"One field, and what it promises","body":"The dialog states the consequence up front: a governed case with a five working day SLA, linked to this document.","say":null,"persona":"sofia","action":"type","shot":"shots/36.jpg","target":{"x":18.402,"y":32.057,"w":63.197,"h":8.444}},{"n":34,"chapter":"Documents & invoices","title":"Confirm — and it is in the app","body":"No email leaves the building. The case is raised, the thread is opened against the invoice and TMF is notified in-product.","say":"This is the whole mechanism. There is no inbox in this story.","persona":"sofia","action":"none","shot":"shots/37.jpg","target":{"x":75.595,"y":47.497,"w":6.004,"h":4.219}},{"n":35,"chapter":"Documents & invoices","title":"The invoice carries its own state","body":"The document now reads Query raised, and the thread she just started hangs off it. The status is the document’s, not a separate ticket’s.","say":null,"persona":"sofia","action":"none","shot":"shots/38.jpg","target":null},{"n":36,"chapter":"Documents & invoices","title":"It is a tracked case now","body":"In her Requests tab the query is a case with a reference, an SLA and an owner — the same object TMF works, not a copy of it.","say":null,"persona":"sofia","action":"none","shot":"shots/39.jpg","target":{"x":5.9,"y":66.524,"w":12.325,"h":1.889}},{"n":37,"chapter":"Documents & invoices","title":"What the client gets to see","body":"A three-step tracker, the SLA, who holds it, and the conversation. That is the whole of it.","say":null,"persona":"sofia","action":"none","shot":"shots/39.jpg","target":null},{"n":38,"chapter":"Documents & invoices","title":"And what she does not","body":"No process timeline, no approval chain, no audit trail, no internal status, no View Full Details link. She sees enough to trust it — not TMF’s working.","say":"One case, one record, two audiences. Hold this screen in mind — Daniel’s is next.","persona":"sofia","action":"none","shot":"shots/39.jpg","target":null},{"n":39,"chapter":"Documents & invoices","title":"The other side of the desk","body":"Daniel runs HR & Payroll for TMF. His home is a worklist across every client on his line, worst first — and cases sitting with a client are marked, because those are not his to clear.","say":"Same platform. A completely different job.","persona":"daniel","action":"none","shot":"shots/42.jpg","target":{"x":75.971,"y":22.601,"w":2.579,"h":6.288}},{"n":40,"chapter":"Documents & invoices","title":"Scope beyond his own line","body":"Sofia’s query routed to Tax & Accounting — the invoice’s service line, not his. One toggle widens the queue to every line.","say":null,"persona":"daniel","action":"click","shot":"shots/43.jpg","target":{"x":28.982,"y":60.389,"w":9.119,"h":3.774}},{"n":41,"chapter":"Documents & invoices","title":"Find it by name","body":"The same search the client has, over reference, title, entity and service line.","say":null,"persona":"daniel","action":"type","shot":"shots/44.jpg","target":{"x":21.248,"y":46.545,"w":8.961,"h":3.778}},{"n":42,"chapter":"Documents & invoices","title":"Her case, on his screen","body":"He selects it and the detail pane fills — the same record object she is looking at, not a copy that has to be kept in step.","say":null,"persona":"daniel","action":"click","shot":"shots/45.jpg","target":{"x":23.261,"y":67.606,"w":12.325,"h":1.889}},{"n":43,"chapter":"Documents & invoices","title":"Open the full case record","body":"From the queue into the record itself, where the internal view lives.","say":null,"persona":"daniel","action":"click","shot":"shots/46.jpg","target":{"x":48.075,"y":56.363,"w":10.429,"h":2.111}},{"n":44,"chapter":"Documents & invoices","title":"Above the fold, identical","body":"Same reference, same SLA, same conversation — with Sofia’s wording intact. Nothing has been retyped or summarised between them.","say":null,"persona":"daniel","action":"none","shot":"shots/47.jpg","target":{"x":21.248,"y":20,"w":4.272,"h":1.889}},{"n":45,"chapter":"Documents & invoices","title":"And then the part she cannot see","body":"View Full Details is internal-only. It is the line between what the client is trusted with and what TMF works with.","say":"This link does not exist on her screen. That is the whole governance story in one control.","persona":"daniel","action":"click","shot":"shots/47.jpg","target":{"x":89.848,"y":19.778,"w":6.265,"h":2.111}},{"n":46,"chapter":"Documents & invoices","title":"The process timeline","body":"Every step the case has been through, who holds the current one, and what it is waiting on — live, not a status someone typed.","say":null,"persona":"daniel","action":"none","shot":"shots/49.jpg","target":null},{"n":47,"chapter":"Documents & invoices","title":"The approval chain, with jurisdictions","body":"Each approver, their jurisdiction and whether the step is internal or client-facing. This is what an auditor asks for.","say":null,"persona":"daniel","action":"none","shot":"shots/49.jpg","target":null},{"n":48,"chapter":"Documents & invoices","title":"And the audit trail","body":"Every action, human or automated, with the actor named and timestamped. Exportable, and the same source the SIEM feed reads.","say":null,"persona":"daniel","action":"none","shot":"shots/51.jpg","target":null},{"n":49,"chapter":"Documents & invoices","title":"He answers her, in the case","body":"Not an email. The reply is written against the case, so it survives handovers and stays on the record.","say":null,"persona":"daniel","action":"type","shot":"shots/52.jpg","target":{"x":21.248,"y":63.177,"w":74.865,"h":6.377}},{"n":50,"chapter":"Documents & invoices","title":"Posted to the thread","body":"It lands on the case and, because the case came from a document, under the invoice in her workspace too. One thread, two places to read it.","say":null,"persona":"daniel","action":"click","shot":"shots/53.jpg","target":{"x":21.248,"y":70.443,"w":8.29,"h":3.774}},{"n":51,"chapter":"Documents & invoices","title":"Now he closes it","body":"The resolution is required — a close with no explanation is not a resolution. The client reads this text verbatim.","say":null,"persona":"daniel","action":"type","shot":"shots/54.jpg","target":{"x":21.248,"y":57.967,"w":74.865,"h":6.377}},{"n":52,"chapter":"Documents & invoices","title":"One action, six things","body":"Closing advances the tracker, writes the audit line, posts the resolution into the thread, releases the invoice and notifies Sofia — in a single write.","say":"Everything the task email could do, done on the case the client is already looking at.","persona":"daniel","action":"click","shot":"shots/55.jpg","target":{"x":21.248,"y":65.233,"w":10.162,"h":3.774}},{"n":53,"chapter":"Documents & invoices","title":"Closed, and evidenced","body":"The case reads Complete, the tracker has advanced and the close is on the audit trail with Daniel’s name against it.","say":null,"persona":"daniel","action":"none","shot":"shots/56.jpg","target":null},{"n":54,"chapter":"Documents & invoices","title":"What Sofia sees of all that","body":"Complete, on step three of her tracker, with TMF’s answer in her conversation. None of the internal machinery — just the outcome and the reason.","say":null,"persona":"sofia","action":"none","shot":"shots/57.jpg","target":{"x":5.9,"y":66.524,"w":12.325,"h":1.889}},{"n":55,"chapter":"Documents & invoices","title":"And the invoice is released","body":"INV-2026-0388 is settled again and his answer is under it — the same message, in the place she asked the question.","say":null,"persona":"sofia","action":"none","shot":"shots/58.jpg","target":null},{"n":56,"chapter":"Requesting documents","title":"Now TMF needs something","body":"Daniel is working the Spanish payroll variance and needs the authorising form from Meridian Iberia. He asks for it from the same workspace.","say":"Same relationship, opposite direction. Watch where it lands.","persona":"daniel","action":"click","shot":"shots/59.jpg","target":{"x":83.613,"y":52.566,"w":12.5,"h":3.774}},{"n":57,"chapter":"Requesting documents","title":"Who it is for","body":"Three guided steps. The entity list follows the client he picks, so a request cannot be addressed to a mismatched pair.","say":null,"persona":"daniel","action":"none","shot":"shots/60.jpg","target":{"x":10.068,"y":49.453,"w":79.863,"h":3.778}},{"n":58,"chapter":"Requesting documents","title":"Client and entity chosen","body":"Meridian Capital Holdings, Meridian Iberia S.L. — the Spanish entity the variance sits on.","say":null,"persona":"daniel","action":"click","shot":"shots/61.jpg","target":{"x":85.944,"y":79.116,"w":3.988,"h":4.219}},{"n":59,"chapter":"Requesting documents","title":"What you need, from the library","body":"Not a free-text ask. He picks from the documents TMF routinely requests, and that choice sets the service line and the reason for him.","say":null,"persona":"daniel","action":"none","shot":"shots/62.jpg","target":{"x":10.068,"y":49.453,"w":79.863,"h":3.778}},{"n":60,"chapter":"Requesting documents","title":"The library explains itself","body":"“Usually needed because: authorises a change to pay or benefits. Routes to HR & Payroll.” The routing is derived, not typed.","say":"This is why the request cannot be mis-addressed — the library carries the rules.","persona":"daniel","action":"click","shot":"shots/63.jpg","target":{"x":85.944,"y":79.116,"w":3.988,"h":4.219}},{"n":61,"chapter":"Requesting documents","title":"When, and why","body":"A due date and a reason the client reads verbatim. The reason arrives prefilled from the library and he sharpens it for this case.","say":null,"persona":"daniel","action":"type","shot":"shots/64.jpg","target":{"x":10.068,"y":54.741,"w":79.863,"h":8.444}},{"n":62,"chapter":"Requesting documents","title":"Send it","body":"It does not become an email. It becomes a row in her own document workspace, with a due date against it.","say":null,"persona":"daniel","action":"click","shot":"shots/65.jpg","target":{"x":81.321,"y":79.116,"w":8.611,"h":4.219}},{"n":63,"chapter":"Requesting documents","title":"It is waiting for her","body":"The form sits in her workspace marked Requested, with the date and the reason Daniel gave. Nothing to find in an inbox.","say":null,"persona":"sofia","action":"none","shot":"shots/66.jpg","target":{"x":11.455,"y":96.142,"w":9.158,"h":1.889}},{"n":64,"chapter":"Requesting documents","title":"She uploads it","body":"The action only appears on a document TMF has asked for and she has not yet supplied — so it is never offered where it would make no sense.","say":null,"persona":"sofia","action":"click","shot":"shots/66.jpg","target":{"x":46.389,"y":96.276,"w":18.682,"h":3.774}},{"n":65,"chapter":"Requesting documents","title":"Attached to the existing request","body":"It attaches to the request Daniel raised rather than creating a second, unrelated document. One thing, tracked once.","say":null,"persona":"sofia","action":"none","shot":"shots/68.jpg","target":null},{"n":66,"chapter":"Requesting documents","title":"Sent back to TMF","body":"Submitting moves the document to Received and tells the service team. Her part is done.","say":null,"persona":"sofia","action":"click","shot":"shots/69.jpg","target":{"x":73.733,"y":79.116,"w":7.866,"h":4.219}},{"n":67,"chapter":"Requesting documents","title":"And TMF closes the loop","body":"It is back on Daniel’s side marked Received, waiting for him. The exchange has never left the portal.","say":null,"persona":"daniel","action":"none","shot":"shots/70.jpg","target":{"x":46.389,"y":84.028,"w":11.314,"h":3.774}},{"n":68,"chapter":"Requesting documents","title":"He reviews and accepts","body":"Review and accept is internal-only, and only appears while the document is sitting in Received. It is the last step of the exchange.","say":"Documents that arrive through DocCenter carry their extracted fields here for reconciliation — this one was supplied straight to the portal.","persona":"daniel","action":"click","shot":"shots/70.jpg","target":{"x":46.389,"y":84.028,"w":11.314,"h":3.774}},{"n":69,"chapter":"Requesting documents","title":"Filed, and the client is told","body":"Accepting files it against Meridian’s records and tells Sofia it landed. She is not asked to review her own document — that would be circular.","say":null,"persona":"daniel","action":"none","shot":"shots/72.jpg","target":null},{"n":70,"chapter":"Requesting documents","title":"What the AI did on the way in","body":"Documents are classified and their fields extracted on arrival. The hub carries the average confidence, and anything under the threshold is held for a person rather than auto-accepted.","say":"This is Appian DocCenter behind the workspace. The invoice on screen has a value flagged for human review.","persona":"daniel","action":"none","shot":"shots/73.jpg","target":{"x":93.785,"y":13.179,"w":4.363,"h":10.688}},{"n":71,"chapter":"Requesting documents","title":"And the internal-only controls","body":"Re-run AI extraction and Assign to local specialist are never offered to a client. The same document, a different set of verbs.","say":null,"persona":"daniel","action":"none","shot":"shots/74.jpg","target":{"x":46.389,"y":48.139,"w":12.485,"h":3.774}},{"n":72,"chapter":"Analytics","title":"Daniel’s department, measured","body":"SLA attainment, what sits with his team, what is at risk, and how many clients his line serves — aggregated live, not pasted from a spreadsheet.","say":null,"persona":"daniel","action":"none","shot":"shots/75.jpg","target":{"x":75.971,"y":22.601,"w":4.717,"h":6.288}},{"n":73,"chapter":"Analytics","title":"Whose backlog is it","body":"Open work split by client and by who is holding it. Work sitting with a client is not his department’s backlog — and the chart says so.","say":null,"persona":"daniel","action":"none","shot":"shots/76.jpg","target":null},{"n":74,"chapter":"Analytics","title":"Analytics that acts","body":"From the bottleneck callout he can raise a pre-emptive document request for every filing due in the next window — one click, one request per client.","say":"Automation acting on the analysis, rather than just reporting it.","persona":"daniel","action":"none","shot":"shots/77.jpg","target":{"x":64.512,"y":46.826,"w":28.2,"h":6.288}},{"n":75,"chapter":"Analytics","title":"The same platform, her numbers","body":"TMF’s SLA attainment against her, filings overdue, requests waiting on her, and invoice ageing — her holding structure read live from TMF’s systems of record.","say":null,"persona":"sofia","action":"none","shot":"shots/78.jpg","target":{"x":61.388,"y":27.734,"w":5.477,"h":4.089}},{"n":76,"chapter":"Analytics","title":"Compliance by jurisdiction","body":"Nine statutory obligations across eight jurisdictions. Anything overdue is a penalty exposure and a good-standing risk, so it leads.","say":null,"persona":"sofia","action":"none","shot":"shots/79.jpg","target":null},{"n":77,"chapter":"Analytics","title":"The number most providers hide","body":"In-flight requests split by where the delay actually sits — with TMF, or with her own team. Publishing that is a statement of confidence.","say":"Say it plainly: “requests waiting on you” is a number most providers will not show a client.","persona":"sofia","action":"none","shot":"shots/80.jpg","target":null},{"n":78,"chapter":"Analytics","title":"And the BI they already own","body":"The same figures rendered in Power BI, embedded in the portal so an executive never leaves it.","say":"This panel is a placeholder — say “embedded BI drops in here, scoped by the same organisation claim”.","persona":"sofia","action":"click","shot":"shots/78.jpg","target":{"x":92.916,"y":53.347,"w":5.419,"h":3.774}},{"n":79,"chapter":"Onboarding & integration","title":"The connected application catalogue","body":"Six applications, each with a status, a client-access switch and a connection test. Five live, five client-facing.","say":null,"persona":"lucia","action":"none","shot":"shots/82.jpg","target":{"x":5.9,"y":64.76,"w":11.353,"h":1.889}},{"n":80,"chapter":"Onboarding & integration","title":"Test it for real","body":"Not a stored flag. Clicking this makes an outbound HTTP call to the application’s health endpoint, right now.","say":null,"persona":"lucia","action":"click","shot":"shots/83.jpg","target":{"x":7.218,"y":48.861,"w":6.603,"h":2.111}},{"n":81,"chapter":"Onboarding & integration","title":"The evidence it returns","body":"The status line, the server’s own Date header and the response body — so Live is a thing the endpoint earned, not a value somebody typed.","say":null,"persona":"lucia","action":"none","shot":"shots/84.jpg","target":null},{"n":82,"chapter":"Onboarding & integration","title":"Onboard a new one","body":"Registering an application is a guided form: what it is, what it does, who provides it, the SSO launch URL and the health endpoint.","say":null,"persona":"lucia","action":"click","shot":"shots/85.jpg","target":{"x":3.331,"y":78.602,"w":15.231,"h":3.774}},{"n":83,"chapter":"Onboarding & integration","title":"SSO metadata and health endpoint","body":"The SSO launch URL is where the portal hands the user off with their federated identity preserved. The health endpoint is what decides Live or Testing.","say":"The wand icon prefills a worked example if you would rather not type on stage.","persona":"lucia","action":"none","shot":"shots/86.jpg","target":{"x":18.332,"y":85.26,"w":0.069,"h":0.111}},{"n":84,"chapter":"Security & compliance","title":"Six layers, stated as architecture","body":"Identity at the IdP, authorisation in Appian, record-level security through data fabric, OAuth to partner platforms, AES-256 at rest with EU residency, and full audit logging.","say":null,"persona":"lucia","action":"none","shot":"shots/87.jpg","target":{"x":5.552,"y":64.538,"w":33.34,"h":2.644}},{"n":85,"chapter":"Security & compliance","title":"Audit history, with the actor named","body":"Every authentication, permission change, document access and AI interaction — who, what and when, exportable.","say":null,"persona":"lucia","action":"none","shot":"shots/88.jpg","target":null},{"n":86,"chapter":"Security & compliance","title":"Streamed to the SIEM they run","body":"Authentication, authorisation, document access and administrative events forward to Microsoft Sentinel over a standard integration — last batch and today’s count on screen.","say":null,"persona":"lucia","action":"none","shot":"shots/89.jpg","target":null}]}</script>
+
+<script>
+(function () {
+  'use strict';
+  var DATA = JSON.parse(document.getElementById('data').textContent);
+  var STEPS = DATA.steps, CHAPS = DATA.chapters, N = STEPS.length;
+  var i = 0, started = false;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var shot = $('shot'), spot = $('spot'), veil = $('veil'), hot = $('hot'),
+      tip = $('tip'), frame = $('frame'), rail = $('rail');
+
+  var PERSONA = { sofia: 'Sofia · client', marcus: 'Marcus · client admin',
+                  daniel: 'Daniel · TMF', lucia: 'Lucia · TMF admin' };
+
+  /* ---- theme: remembered per viewer, harmless if storage is unavailable ---- */
+  try {
+    var saved = localStorage.getItem('tmf-theme');
+    if (saved) document.documentElement.setAttribute('data-theme', saved);
+  } catch (e) {}
+  $('theme').addEventListener('click', function () {
+    var cur = document.documentElement.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark'
+      : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var nextTheme = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    try { localStorage.setItem('tmf-theme', nextTheme); } catch (e) {}
+  });
+
+  /* ---- cover ---- */
+  $('cvTitle').textContent = DATA.title;
+  $('cvLede').textContent = DATA.subtitle + '. ' + N +
+    ' steps across ' + CHAPS.length + ' chapters, every screen captured from the running application.';
+  $('cvMeta').innerHTML = 'Captured ' + DATA.captured +
+    ' · cms-2.appiancloud.com<br>Click the pulsing marker, or use → ← and Space. Press C for chapters.';
+  function tocHtml() {
+    return CHAPS.map(function (c, n) {
+      return '<div><b>' + (n + 1) + '. ' + esc(c.name) + '</b><span>' + c.count + ' steps</span></div>';
+    }).join('');
+  }
+  $('cvToc').innerHTML = tocHtml();
+  $('endToc').innerHTML = tocHtml();
+  $('endMeta').textContent = 'TMF Unified Client Portal · built on Appian · ' + DATA.captured;
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  /* ---- chapter rail ---- */
+  CHAPS.forEach(function (c, n) {
+    var b = document.createElement('button');
+    b.className = 'chap';
+    b.innerHTML = '<span class="cn">' + String(n + 1).padStart(2, '0') + '</span>' +
+                  '<span class="ct">' + esc(c.name) + '</span>' +
+                  '<span class="cc">' + c.count + '</span>';
+    b.addEventListener('click', function () { go(c.from - 1); setRail(false); });
+    b.dataset.from = c.from;
+    $('chapList').appendChild(b);
+  });
+  function setRail(open) {
+    rail.dataset.open = open ? 'true' : 'false';
+    $('chapBtn').setAttribute('aria-pressed', open ? 'true' : 'false');
+  }
+  $('chapBtn').addEventListener('click', function () {
+    setRail(rail.dataset.open !== 'true');
+  });
+
+  /* ---- placing the tooltip so it never sits on top of the hotspot ---- */
+  function place(t) {
+    if (window.innerWidth <= 760) { tip.style.cssText = ''; return; }
+    var fw = frame.clientWidth, fh = frame.clientHeight;
+    var tw = tip.offsetWidth, th = tip.offsetHeight, gap = 16;
+    var tx = t.x / 100 * fw, ty = t.y / 100 * fh;
+    var tWd = t.w / 100 * fw, tHt = t.h / 100 * fh;
+
+    // Prefer the side with the most room, then clamp inside the frame.
+    var left, top;
+    var roomRight = fw - (tx + tWd), roomLeft = tx;
+    if (roomRight >= tw + gap) left = tx + tWd + gap;
+    else if (roomLeft >= tw + gap) left = tx - tw - gap;
+    else left = Math.min(Math.max(gap, tx + tWd / 2 - tw / 2), fw - tw - gap);
+
+    var roomBelow = fh - (ty + tHt), roomAbove = ty;
+    if (left === tx + tWd + gap || left === tx - tw - gap) {
+      top = Math.min(Math.max(gap, ty + tHt / 2 - th / 2), fh - th - gap);
+    } else if (roomBelow >= th + gap) {
+      top = ty + tHt + gap;
+    } else if (roomAbove >= th + gap) {
+      top = ty - th - gap;
+    } else {
+      top = Math.max(gap, fh - th - gap);
+    }
+    tip.style.left = Math.round(left) + 'px';
+    tip.style.top = Math.round(top) + 'px';
+    tip.style.right = 'auto';
+    tip.style.bottom = 'auto';
+    tip.style.transform = 'none';
+  }
+
+  /* ---- render ---- */
+  function render() {
+    var s = STEPS[i];
+    shot.src = s.shot;
+    shot.alt = s.title + ' — ' + s.chapter;
+
+    $('wTitle').textContent = s.title;
+    $('wChap').textContent = s.chapter;
+    $('count').textContent = (i + 1) + ' / ' + N;
+    $('prog').style.width = ((i + 1) / N * 100) + '%';
+
+    $('tWho').textContent = PERSONA[s.persona] || '';
+    $('tWho').dataset.p = s.persona || '';
+    $('tAct').textContent = s.action === 'click' ? '· click'
+      : s.action === 'type' ? '· type' : '';
+    $('tTitle').textContent = s.title;
+    $('tBody').textContent = s.body;
+    if (s.say) { $('tSayText').textContent = s.say; $('tSay').hidden = false; }
+    else { $('tSay').hidden = true; }
+
+    var t = s.target;
+    if (t) {
+      tip.classList.remove('card');
+      veil.hidden = true;
+      spot.hidden = false; hot.hidden = false;
+      var css = 'left:' + t.x + '%;top:' + t.y + '%;width:' + t.w + '%;height:' + t.h + '%';
+      spot.style.cssText = css;
+      hot.style.cssText = css;
+      place(t);
+    } else {
+      tip.classList.add('card');
+      spot.hidden = true; hot.hidden = true;
+      veil.hidden = false;
+      tip.style.cssText = '';
+    }
+
+    // Keep the next two frames warm so advancing never shows a blank stage.
+    [1, 2].forEach(function (d) {
+      if (STEPS[i + d]) { var im = new Image(); im.src = STEPS[i + d].shot; }
+    });
+
+    var cur = null;
+    CHAPS.forEach(function (c) { if (c.from <= i + 1) cur = c.name; });
+    [].forEach.call($('chapList').children, function (b, n) {
+      b.setAttribute('aria-current', CHAPS[n].name === cur ? 'true' : 'false');
+    });
+  }
+
+  function go(n) {
+    if (n < 0) return;
+    if (n >= N) { $('end').hidden = false; return; }
+    i = n; render();
+  }
+  function advance() { go(i + 1); }
+  function back() {
+    if ($('end').hidden === false) { $('end').hidden = true; return; }
+    go(i - 1);
+  }
+
+  hot.addEventListener('click', advance);
+  $('tNext').addEventListener('click', advance);
+  $('next').addEventListener('click', advance);
+  $('prev').addEventListener('click', back);
+
+  $('start').addEventListener('click', function () {
+    $('cover').hidden = true; started = true; render();
+  });
+  $('restart').addEventListener('click', function () {
+    $('end').hidden = true; $('cover').hidden = true; started = true; go(0);
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'c' || e.key === 'C') { setRail(rail.dataset.open !== 'true'); return; }
+    if (e.key === 'Escape') { setRail(false); return; }
+    if (!started) {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') {
+        e.preventDefault(); $('start').click();
+      }
+      return;
+    }
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); advance(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); back(); }
+    else if (e.key === 'Home') { go(0); }
+    else if (e.key === 'End') { go(N - 1); }
+  });
+
+  window.addEventListener('resize', function () {
+    if (started && STEPS[i] && STEPS[i].target) place(STEPS[i].target);
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>

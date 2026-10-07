@@ -1,0 +1,13 @@
+import { chromium } from 'playwright';
+import { login, settle, SITES } from './lib.mjs';
+const b = await chromium.launch({headless:true});
+const c = await b.newContext({viewport:{width:1440,height:900}});
+const p = await c.newPage(); p.setDefaultTimeout(30000);
+await login(c,p,'sofia',`${SITES.portal}/page/requests`);
+await settle(p,3200);
+const t = await p.evaluate(()=> (document.body.innerText||'').replace(/\s+/g,' '));
+console.log('has "Billing query":', /Billing query/i.test(t));
+const idx = t.search(/Billing query/i);
+console.log('context:', idx>=0 ? t.slice(Math.max(0,idx-120), idx+260) : 'NONE');
+console.log('REQ refs:', JSON.stringify([...new Set((t.match(/REQ-\d+/g)||[]))].slice(0,12)));
+await b.close();
