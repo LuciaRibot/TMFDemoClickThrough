@@ -40,10 +40,21 @@ directories. **`.env` holds the demo passwords — keep it out of the repo.**
 | Chapters | `C`, or the ☰ button |
 | Jump to start / end | `Home` / `End` |
 | Theme | the ◐ button, remembered per browser |
+| Focus dimming on/off | `F`, or the ◎ button |
+| Hide the panel | `H`, or the ▤ button |
 
-Steps with a hotspot dim everything else and point at the control being used.
-Steps without one are narration over the screen before it. Presenter lines are
-in the grey **SAY** block — they are for whoever is driving, not for the room.
+Three kinds of step:
+
+- **A click or a keystroke** — the marker pulses on the control and the rest of
+  the screen is dimmed back a little, so the eye goes to the right place. The
+  dim is deliberately light; the whole screen stays readable.
+- **Narration with a marker** — the marker points, nothing is dimmed.
+- **Narration without one** — a caption card in the lower corner, over the
+  untouched screen.
+
+Presenter lines are in the grey **SAY** block — they are for whoever is
+driving, not for the room. `F` turns the dim off entirely and `H` hides the
+panel, if you would rather talk over a clean screen. Both are remembered.
 
 Works at phone width: the tooltip docks to the bottom of the screen.
 

@@ -129,7 +129,11 @@ try {
     say: 'The tool call is on screen. This is her data, resolved from her session.',
     before: scrollChat,
     action: 'none',
-    target: () => P().getByText(/Executed expression rule/i).first(),
+    // The tool-call chip is a collapsible card. Both getByText and getByRole
+    // matched zero-height wrappers around it; its header row is the element
+    // that actually has the chip's size.
+    target: () => P().locator('[class*="collapsible_header_inner"]')
+      .filter({ hasText: /Executed expression rule/i }).first(),
   });
 
   await cap.step({

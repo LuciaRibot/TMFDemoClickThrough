@@ -29,6 +29,9 @@ patch(17, {
 // noise, so they read as caption cards instead.
 patch(68, { target: null });
 patch(72, { target: null });
+// 47 ("above the fold, identical") is about the whole header, and its box
+// landed on blank card above the PROGRESS label rather than on a control.
+patch(47, { target: null });
 patch(71, {
   title: 'He reviews and accepts',
   body: 'Review and accept is internal-only, and only appears while the document is sitting in Received. It is the last step of the exchange.',

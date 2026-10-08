@@ -12,7 +12,7 @@
   --paper:#F2EEEB; --surface:#FFFFFF; --sunk:#E8E2DD;
   --ink:#1A1718; --muted:#6E6762; --line:#DED7D1;
   --brand:#E8272C; --brand-deep:#B5171C; --on-brand:#FFFFFF;
-  --mask:rgba(22,19,20,.62);
+  --mask:rgba(22,19,20,.17);
   --client:#17646F; --tmf:#B5171C; --admin:#44566B;
   --ok:#117C00;
   --display:'Archivo', 'Helvetica Neue', Arial, sans-serif;
@@ -25,7 +25,7 @@
     --paper:#131519; --surface:#1C1F24; --sunk:#262A30;
     --ink:#F0EDEA; --muted:#9C958F; --line:#2F343B;
     --brand:#FF5A5E; --brand-deep:#E8272C; --on-brand:#1A0406;
-    --mask:rgba(6,7,9,.74);
+    --mask:rgba(6,7,9,.26);
     --client:#4FB3C0; --tmf:#FF5A5E; --admin:#8FA6BF;
     --ok:#4ADE80;
     color-scheme: dark;
@@ -35,7 +35,7 @@
   --paper:#131519; --surface:#1C1F24; --sunk:#262A30;
   --ink:#F0EDEA; --muted:#9C958F; --line:#2F343B;
   --brand:#FF5A5E; --brand-deep:#E8272C; --on-brand:#1A0406;
-  --mask:rgba(6,7,9,.74);
+  --mask:rgba(6,7,9,.26);
   --client:#4FB3C0; --tmf:#FF5A5E; --admin:#8FA6BF;
   --ok:#4ADE80;
   color-scheme: dark;
@@ -100,23 +100,39 @@ button { font: inherit; color: inherit; cursor: pointer; }
   position: absolute; inset: calc(var(--bar) + env(safe-area-inset-top, 0px)) 0 0 0;
   display: grid; place-items: center; padding: 18px;
 }
+/* The frame shrink-wraps the image instead of forcing its own aspect ratio.
+   With a fixed aspect-ratio plus object-fit:cover the browser cropped the
+   screenshot whenever the box and the image disagreed even slightly, and the
+   hotspot percentages — which are measured against the image — stopped
+   landing on the pixels they were measured from. Letting the image size
+   itself keeps 1% of the frame equal to 1% of the capture. */
 .frame {
-  position: relative; aspect-ratio: 16 / 10;
-  width: 100%; max-width: 100%; max-height: 100%;
+  position: relative; line-height: 0;
+  max-width: 100%; max-height: 100%;
   border-radius: 10px; overflow: hidden;
   background: var(--sunk);
   box-shadow: 0 18px 50px rgba(0,0,0,.22), 0 0 0 1px var(--line);
 }
-.frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.frame img {
+  display: block; width: auto; height: auto;
+  max-width: 100%; max-height: 100%;
+}
 
 /* The dim: one transparent box with an enormous shadow, so the cutout is the
    only lit area. No second element and no SVG mask to keep in sync. */
 .spot {
   position: absolute; border-radius: 7px; pointer-events: none;
-  box-shadow: 0 0 0 100vmax var(--mask); outline: 2px solid var(--brand);
-  outline-offset: 1px; transition: all .3s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 0 0 100vmax var(--mask);
+  outline: 3px solid var(--brand); outline-offset: 2px;
+  transition: all .3s cubic-bezier(.4,0,.2,1);
 }
-.veil { position: absolute; inset: 0; background: var(--mask); pointer-events: none; }
+/* Focus off: keep the ring and the pulse, drop the dim entirely. */
+body.nodim .spot { box-shadow: none; }
+/* Narration steps point without dimming. Only a step that asks for a click or
+   a keystroke needs the rest of the screen pushed back; a step that is talking
+   about the screen needs the screen. Dimming those was what made the whole
+   walkthrough read as blacked out. */
+.spot.point { box-shadow: none; }
 
 .hot {
   position: absolute; border: 0; background: transparent; padding: 0;
@@ -135,16 +151,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* ----------------------------------------------------------- tooltip */
 .tip {
-  position: absolute; z-index: 6; width: min(360px, 78%);
+  position: absolute; z-index: 6; width: min(330px, 62%);
   background: var(--surface); color: var(--ink);
   border: 1px solid var(--line); border-radius: 10px;
   box-shadow: 0 14px 40px rgba(0,0,0,.3);
   padding: 15px 16px 14px;
   transition: top .3s cubic-bezier(.4,0,.2,1), left .3s cubic-bezier(.4,0,.2,1);
 }
-.tip.card { /* caption beat: no target, so it sits in the middle */
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: min(560px, 86%); padding: 22px 24px;
+.tip.card {
+  /* Caption beat: no target to point at. Sit in the lower third rather than
+     dead centre, so the screen being described stays readable behind it. */
+  position: absolute; left: 24px; right: auto; bottom: 24px; top: auto; transform: none;
+  width: min(460px, 60%); padding: 18px 20px;
 }
 .eyebrow {
   font-family: var(--mono); font-size: 10px; letter-spacing: .13em; text-transform: uppercase;
@@ -158,9 +176,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
   font-family: var(--display); font-weight: 700; font-size: 17px; line-height: 1.25;
   margin: 0 0 6px; text-wrap: balance;
 }
-.tip.card h2 { font-size: 23px; }
+.tip.card h2 { font-size: 19px; }
 .tip p { margin: 0; font-size: 13.5px; line-height: 1.52; color: var(--ink); }
-.tip.card p { font-size: 15px; }
+.tip.card p { font-size: 14px; }
 .say {
   margin-top: 11px; padding: 9px 11px; border-radius: 7px;
   background: var(--sunk); border-left: 3px solid var(--brand);
@@ -177,6 +195,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 .next:hover { background: var(--brand-deep); }
 .hint { font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
+body.nopanel .tip { opacity: 0; pointer-events: none; }
 
 /* ----------------------------------------------------------- chapters */
 .rail {
@@ -245,6 +264,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
     max-height: 56svh; overflow-y: auto;
   }
   .where span { display: none; }
+  /* Seven controls do not fit across a phone. The presenter toggles are for
+     whoever is driving on a laptop, so drop them here and keep the row from
+     running off the right edge. */
+  .bar { gap: 8px; padding-left: 10px; padding-right: 10px; }
+  #focus, #panel { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
@@ -265,6 +289,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
   <span class="count" id="count">—</span>
   <button class="btn icon" id="prev" aria-label="Previous step" title="Previous (←)">‹</button>
   <button class="btn icon" id="next" aria-label="Next step" title="Next (→)">›</button>
+  <button class="btn icon" id="focus" aria-pressed="true" aria-label="Toggle focus dimming" title="Dim around the hotspot (F)">◎</button>
+  <button class="btn icon" id="panel" aria-pressed="true" aria-label="Show or hide the panel" title="Hide the panel (H)">▤</button>
   <button class="btn icon" id="theme" aria-label="Switch theme" title="Theme">◐</button>
 </header>
 
@@ -276,7 +302,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 <main class="stage">
   <div class="frame" id="frame">
     <img id="shot" alt="">
-    <div class="veil" id="veil" hidden></div>
     <div class="spot" id="spot" hidden></div>
     <button class="hot" id="hot" hidden aria-label="Continue"></button>
     <div class="tip" id="tip" role="status" aria-live="polite">
@@ -324,7 +349,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   var i = 0, started = false;
 
   var $ = function (id) { return document.getElementById(id); };
-  var shot = $('shot'), spot = $('spot'), veil = $('veil'), hot = $('hot'),
+  var shot = $('shot'), spot = $('spot'), hot = $('hot'),
       tip = $('tip'), frame = $('frame'), rail = $('rail');
 
   var PERSONA = { sofia: 'Sofia · client', marcus: 'Marcus · client admin',
@@ -344,12 +369,28 @@ button { font: inherit; color: inherit; cursor: pointer; }
     try { localStorage.setItem('tmf-theme', nextTheme); } catch (e) {}
   });
 
+  /* ---- presenter toggles ---- */
+  function setFlag(cls, on, btn, key) {
+    document.body.classList.toggle(cls, !on);
+    $(btn).setAttribute('aria-pressed', on ? 'true' : 'false');
+    try { localStorage.setItem(key, on ? '1' : '0'); } catch (e) {}
+  }
+  var dimOn = true, panelOn = true;
+  try {
+    if (localStorage.getItem('tmf-dim') === '0') dimOn = false;
+    if (localStorage.getItem('tmf-panel') === '0') panelOn = false;
+  } catch (e) {}
+  setFlag('nodim', dimOn, 'focus', 'tmf-dim');
+  setFlag('nopanel', panelOn, 'panel', 'tmf-panel');
+  $('focus').addEventListener('click', function () { dimOn = !dimOn; setFlag('nodim', dimOn, 'focus', 'tmf-dim'); });
+  $('panel').addEventListener('click', function () { panelOn = !panelOn; setFlag('nopanel', panelOn, 'panel', 'tmf-panel'); });
+
   /* ---- cover ---- */
   $('cvTitle').textContent = DATA.title;
   $('cvLede').textContent = DATA.subtitle + '. ' + N +
     ' steps across ' + CHAPS.length + ' chapters, every screen captured from the running application.';
   $('cvMeta').innerHTML = 'Captured ' + DATA.captured +
-    ' · cms-2.appiancloud.com<br>Click the pulsing marker, or use → ← and Space. Press C for chapters.';
+    ' · cms-2.appiancloud.com<br>Click the pulsing marker, or use → ← and Space.<br>C for chapters · F for focus dimming · H to hide the panel.';
   function tocHtml() {
     return CHAPS.map(function (c, n) {
       return '<div><b>' + (n + 1) + '. ' + esc(c.name) + '</b><span>' + c.count + ' steps</span></div>';
@@ -384,33 +425,48 @@ button { font: inherit; color: inherit; cursor: pointer; }
     setRail(rail.dataset.open !== 'true');
   });
 
-  /* ---- placing the tooltip so it never sits on top of the hotspot ---- */
+  /* ---- placing the panel ---- */
   function place(t) {
     if (window.innerWidth <= 760) { tip.style.cssText = ''; return; }
     var fw = frame.clientWidth, fh = frame.clientHeight;
-    var tw = tip.offsetWidth, th = tip.offsetHeight, gap = 16;
+    var tw = tip.offsetWidth, th = tip.offsetHeight, gap = 18, edge = 16;
     var tx = t.x / 100 * fw, ty = t.y / 100 * fh;
     var tWd = t.w / 100 * fw, tHt = t.h / 100 * fh;
+    var cx = tx + tWd / 2, cy = ty + tHt / 2;
+    var clamp = function (v, lo, hi) { return Math.min(Math.max(v, lo), hi); };
 
-    // Prefer the side with the most room, then clamp inside the frame.
-    var left, top;
-    var roomRight = fw - (tx + tWd), roomLeft = tx;
-    if (roomRight >= tw + gap) left = tx + tWd + gap;
-    else if (roomLeft >= tw + gap) left = tx - tw - gap;
-    else left = Math.min(Math.max(gap, tx + tWd / 2 - tw / 2), fw - tw - gap);
-
-    var roomBelow = fh - (ty + tHt), roomAbove = ty;
-    if (left === tx + tWd + gap || left === tx - tw - gap) {
-      top = Math.min(Math.max(gap, ty + tHt / 2 - th / 2), fh - th - gap);
-    } else if (roomBelow >= th + gap) {
-      top = ty + tHt + gap;
-    } else if (roomAbove >= th + gap) {
-      top = ty - th - gap;
-    } else {
-      top = Math.max(gap, fh - th - gap);
+    var below = ty + tHt + gap, above = ty - th - gap;
+    var right = tx + tWd + gap, left = tx - tw - gap;
+    var pos = null;
+    // A wide target centred under it would put the panel straight over the
+    // content the step is describing. Hug the nearer frame edge instead, so
+    // the other side of the screen stays readable.
+    var wide = tWd > fw * 0.35;
+    var lx = wide
+      ? (cx > fw / 2 ? fw - tw - edge : edge)
+      : clamp(cx - tw / 2, edge, fw - tw - edge);
+    var vmid = clamp(cy - th / 2, edge, fh - th - edge);
+    // Order of preference depends on the shape of the target. A narrow target
+    // is almost always a control inside a card, and the rest of that card sits
+    // directly below it — so go beside it and leave the column intact. A wide
+    // target spans the screen, so no side fits and below/above is the only
+    // honest choice.
+    var order = wide
+      ? [[below + th <= fh - edge, lx, below], [above >= edge, lx, above],
+         [right + tw <= fw - edge, right, vmid], [left >= edge, left, vmid]]
+      : [[right + tw <= fw - edge, right, vmid], [left >= edge, left, vmid],
+         [below + th <= fh - edge, lx, below], [above >= edge, lx, above]];
+    for (var k = 0; k < order.length && !pos; k++) {
+      if (order[k][0]) pos = { l: order[k][1], t: order[k][2] };
     }
-    tip.style.left = Math.round(left) + 'px';
-    tip.style.top = Math.round(top) + 'px';
+    if (!pos) {
+      // Nothing fits cleanly: take the roomier side and keep off the hotspot.
+      pos = (fw - (tx + tWd)) > tx
+        ? { l: fw - tw - edge, t: clamp(cy - th / 2, edge, fh - th - edge) }
+        : { l: edge,           t: clamp(cy - th / 2, edge, fh - th - edge) };
+    }
+    tip.style.left = Math.round(pos.l) + 'px';
+    tip.style.top = Math.round(pos.t) + 'px';
     tip.style.right = 'auto';
     tip.style.bottom = 'auto';
     tip.style.transform = 'none';
@@ -439,16 +495,21 @@ button { font: inherit; color: inherit; cursor: pointer; }
     var t = s.target;
     if (t) {
       tip.classList.remove('card');
-      veil.hidden = true;
       spot.hidden = false; hot.hidden = false;
-      var css = 'left:' + t.x + '%;top:' + t.y + '%;width:' + t.w + '%;height:' + t.h + '%';
+      spot.classList.toggle('point', s.action === 'none');
+      // Some targets are thin labels. Pad the marker outwards around the same
+      // centre so it reads as a marker, without shifting what it points at.
+      var MIN_W = 2.6, MIN_H = 2.6;
+      var dw = Math.max(0, MIN_W - t.w) / 2, dh = Math.max(0, MIN_H - t.h) / 2;
+      var bx = Math.max(0, t.x - dw), by = Math.max(0, t.y - dh);
+      var bw = Math.min(100 - bx, t.w + dw * 2), bh = Math.min(100 - by, t.h + dh * 2);
+      var css = 'left:' + bx + '%;top:' + by + '%;width:' + bw + '%;height:' + bh + '%';
       spot.style.cssText = css;
       hot.style.cssText = css;
       place(t);
     } else {
       tip.classList.add('card');
       spot.hidden = true; hot.hidden = true;
-      veil.hidden = false;
       tip.style.cssText = '';
     }
 
@@ -489,6 +550,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'c' || e.key === 'C') { setRail(rail.dataset.open !== 'true'); return; }
+    if (e.key === 'f' || e.key === 'F') { dimOn = !dimOn; setFlag('nodim', dimOn, 'focus', 'tmf-dim'); return; }
+    if (e.key === 'h' || e.key === 'H') { panelOn = !panelOn; setFlag('nopanel', panelOn, 'panel', 'tmf-panel'); return; }
     if (e.key === 'Escape') { setRail(false); return; }
     if (!started) {
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') {

@@ -160,7 +160,9 @@ try {
       await page.waitForTimeout(1000);
     },
     action: 'none', settle: 2400,
-    target: () => P().locator('[role=dialog] input').last(),
+    // Appian dropdowns carry 1x1 hidden inputs that still satisfy :visible,
+    // so point at the field's own label instead.
+    target: () => P().locator('[role=dialog]').getByText(/API health endpoint/i).first(),
   });
 
   /* ----------------------------- security ------------------------------ */
