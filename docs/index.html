@@ -540,7 +540,34 @@ body.nopanel .tip { opacity: 0; pointer-events: none; }
     if (n < 0) return;
     if (n >= N) { $('end').hidden = false; return; }
     i = n; render();
+    // Keep the address bar on the current step so any screen can be linked to.
+    // replaceState, not pushState: stepping through 86 steps should not leave
+    // 86 entries in the back button.
+    if (started) {
+      try { history.replaceState(null, '', '#s=' + (i + 1)); } catch (e) {}
+    }
   }
+
+  /* ---- deep links ----------------------------------------------------
+     #s=44 opens at step 44, #c=4 at the start of chapter 4. Either skips
+     the cover, because a link that names a step means to go there. No hash
+     (the embedded copy, or a plain visit) behaves exactly as before. */
+  function fromHash() {
+    var h = (location.hash || '').replace(/^#/, '');
+    if (!h) return -1;
+    var m = /^s=(\d+)$/.exec(h);
+    if (m) { var n = parseInt(m[1], 10); return (n >= 1 && n <= N) ? n - 1 : -1; }
+    m = /^c=(\d+)$/.exec(h);
+    if (m) { var c = CHAPS[parseInt(m[1], 10) - 1]; return c ? c.from - 1 : -1; }
+    return -1;
+  }
+  function openAt(n) {
+    $('cover').hidden = true; $('end').hidden = true; started = true; go(n);
+  }
+  window.addEventListener('hashchange', function () {
+    var n = fromHash();
+    if (n >= 0 && n !== i) openAt(n);
+  });
   function advance() { go(i + 1); }
   function back() {
     if ($('end').hidden === false) { $('end').hidden = true; return; }
@@ -580,7 +607,8 @@ body.nopanel .tip { opacity: 0; pointer-events: none; }
     if (started && STEPS[i] && STEPS[i].target) place(STEPS[i].target);
   });
 
-  render();
+  var deep = fromHash();
+  if (deep >= 0) openAt(deep); else render();
 })();
 </script>
 
