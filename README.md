@@ -10,8 +10,10 @@ screenshot; the hotspots were measured from the running DOM.
 
 ## Deploying to GitHub Pages
 
-`dist/` is the whole site: one `index.html` with the steps inlined, plus
-`shots/`. No build step, no server, no credentials.
+`docs/` is the whole site: one `index.html` with the steps inlined, plus
+`shots/`. No build step, no server, no credentials. It is named `docs/` rather
+than `dist/` because GitHub Pages will only publish from the repository root
+or from `/docs` — those are the only two folders the setting offers.
 
 Remote: **https://github.com/LuciaRibot/TMFDemoClickThrough**
 
@@ -21,12 +23,12 @@ git push -u origin main
 ```
 
 Then in **Settings → Pages**, set *Source* to **Deploy from a branch**,
-branch `main`, folder **`/dist`**. The site appears at
+branch `main`, folder **`/docs`**. The site appears at
 
 **https://luciaribot.github.io/TMFDemoClickThrough/**
 
 If you would rather publish from the repository root, move the contents of
-`dist/` up one level and set the folder to `/ (root)`.
+`docs/` up one level and set the folder to `/ (root)`.
 
 `.gitignore` already excludes `node_modules/`, `.env`, and the capture working
 directories. **`.env` holds the demo passwords — keep it out of the repo.**
@@ -116,7 +118,7 @@ that opened the dialog was skipped.
 ## Layout
 
 ```
-dist/           the deployable site — index.html + shots/
+docs/           the deployable site — index.html + shots/ (GitHub Pages serves this)
 artifact/       same page without the HTML skeleton, for the Claude artifact
 capture/        Playwright capture scripts, the player template, helpers
 capture/state/  captured step metadata (gitignored)
@@ -126,4 +128,4 @@ recon/          DOM dumps and verification screenshots (gitignored)
 
 The player template lives at `capture/player.html`; `npm run build` inlines
 `capture/state/steps.final.json` into it and writes both outputs. Edit the
-template, never `dist/index.html` directly.
+template, never `docs/index.html` directly.

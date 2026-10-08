@@ -14,7 +14,7 @@
     "assemble": "node capture/assemble.mjs",
     "build": "node capture/build.mjs",
     "verify": "node capture/verify-player.mjs",
-    "serve": "node -e \"const h=require('http'),f=require('fs'),p=require('path');h.createServer((q,s)=>{let u=decodeURIComponent(q.url.split('?')[0]);if(u==='/')u='/index.html';const fp=p.join('dist',u);f.readFile(fp,(e,d)=>{if(e){s.writeHead(404);return s.end('not found')}const t={'.html':'text/html','.jpg':'image/jpeg','.json':'application/json','.png':'image/png'}[p.extname(fp)]||'text/plain';s.writeHead(200,{'content-type':t});s.end(d)})}).listen(8099,()=>console.log('http://localhost:8099'))\""
+    "serve": "node -e \"const h=require('http'),f=require('fs'),p=require('path');h.createServer((q,s)=>{let u=decodeURIComponent(q.url.split('?')[0]);if(u==='/')u='/index.html';const fp=p.join('docs',u);f.readFile(fp,(e,d)=>{if(e){s.writeHead(404);return s.end('not found')}const t={'.html':'text/html','.jpg':'image/jpeg','.json':'application/json','.png':'image/png'}[p.extname(fp)]||'text/plain';s.writeHead(200,{'content-type':t});s.end(d)})}).listen(8099,()=>console.log('http://localhost:8099'))\""
   },
   "devDependencies": {
     "playwright": "^1.63.0"

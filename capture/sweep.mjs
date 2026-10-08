@@ -1,7 +1,7 @@
 // Render a grid of player states so panel placement can be eyeballed in bulk.
 import { chromium } from 'playwright';
 import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path';
-const ROOT = new URL('..', import.meta.url).pathname, DIST = path.join(ROOT, 'dist');
+const ROOT = new URL('..', import.meta.url).pathname, DIST = path.join(ROOT, 'docs');
 const T = {'.html':'text/html','.jpg':'image/jpeg','.png':'image/png'};
 const srv = http.createServer((q,r)=>{let u=decodeURIComponent(q.url.split('?')[0]);if(u==='/')u='/index.html';
   fs.readFile(path.join(DIST,u),(e,d)=>{if(e){r.writeHead(404);return r.end()}r.writeHead(200,{'content-type':T[path.extname(u)]||'text/plain'});r.end(d)})});

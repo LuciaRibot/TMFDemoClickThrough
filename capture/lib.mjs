@@ -11,7 +11,7 @@ export const BASE = 'https://cms-2.appiancloud.com';
 /**
  * Credentials come from the environment, never from this file — the capture
  * scripts are part of a package meant to be pushed to GitHub, and the built
- * walkthrough in dist/ contains no credentials at all. Copy .env.example to
+ * walkthrough in docs/ contains no credentials at all. Copy .env.example to
  * .env and fill it in; `npm run capture` loads it.
  */
 const cred = (name, fallbackUser) => ({

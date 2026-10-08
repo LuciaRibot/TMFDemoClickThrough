@@ -1,5 +1,5 @@
 // Inline steps.final.json into the player template and emit both builds:
-//   dist/index.html      standalone — full skeleton, for local use and GitHub Pages
+//   docs/index.html      standalone — full skeleton, for local use and GitHub Pages
 //   artifact/index.html  content only — the Artifact publish adds its own skeleton
 import fs from 'node:fs';
 import path from 'node:path';
@@ -33,8 +33,8 @@ ${body}
 </body>
 </html>
 `;
-fs.writeFileSync(path.join(ROOT, 'dist', 'index.html'), standalone);
+fs.writeFileSync(path.join(ROOT, 'docs', 'index.html'), standalone);
 
 console.log(`built ${data.steps.length} steps`);
-console.log(`  dist/index.html      ${(standalone.length / 1024).toFixed(0)} KB (standalone)`);
+console.log(`  docs/index.html      ${(standalone.length / 1024).toFixed(0)} KB (standalone)`);
 console.log(`  artifact/index.html  ${(body.length / 1024).toFixed(0)} KB (for Artifact publish)`);

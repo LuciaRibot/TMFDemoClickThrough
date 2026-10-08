@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const ROOT = new URL('..', import.meta.url).pathname;
-const DIST = path.join(ROOT, 'dist');
+const DIST = path.join(ROOT, 'docs');
 const OUT = path.join(ROOT, 'recon');
 fs.mkdirSync(OUT, { recursive: true });
 

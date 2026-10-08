@@ -8,7 +8,7 @@ import path from 'node:path';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const STATE = path.join(ROOT, 'capture', 'state');
-const SHOTS = path.join(ROOT, 'dist', 'shots');
+const SHOTS = path.join(ROOT, 'docs', 'shots');
 const INBOX = path.join(ROOT, 'inbox');
 
 const byId = new Map();

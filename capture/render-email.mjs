@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const html = fs.readFileSync(path.join(ROOT, 'capture/state/approval-email.html'), 'utf8');
-const out = path.join(ROOT, 'dist/shots/20.jpg');
+const out = path.join(ROOT, 'docs/shots/20.jpg');
 
 const b = await chromium.launch({ headless: true });
 const c = await b.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });

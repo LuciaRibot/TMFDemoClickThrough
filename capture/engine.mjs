@@ -18,7 +18,7 @@ import crypto from 'node:crypto';
 import { login, settle, settleSlow, readError, boxPct, ensureDir, SITES } from './lib.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
-const SHOTS = path.join(ROOT, 'dist', 'shots');
+const SHOTS = path.join(ROOT, 'docs', 'shots');
 const STATE = path.join(ROOT, 'capture', 'state');
 ensureDir(SHOTS); ensureDir(STATE);
 
