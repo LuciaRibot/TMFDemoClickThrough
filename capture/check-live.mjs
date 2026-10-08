@@ -1,0 +1,20 @@
+import { chromium } from 'playwright';
+const URL = process.argv[2];
+const b = await chromium.launch({ headless: true });
+const c = await b.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+const p = await c.newPage();
+const errs = [], failed = [];
+p.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
+p.on('requestfailed', (r) => failed.push(r.url()));
+await p.goto(URL, { waitUntil: 'networkidle' });
+await p.screenshot({ path: 'recon/live-cover.png' });
+await p.click('#start'); await p.waitForTimeout(800);
+for (let k = 0; k < 10; k++) { await p.keyboard.press('ArrowRight'); await p.waitForTimeout(140); }
+await p.waitForTimeout(900);
+await p.screenshot({ path: 'recon/live-step11.png' });
+console.log('shot loaded :', await p.evaluate(() => { const i = document.getElementById('shot'); return i.complete && i.naturalWidth > 0 ? i.naturalWidth + 'x' + i.naturalHeight : 'NOT LOADED'; }));
+console.log('step shown  :', await p.evaluate(() => document.getElementById('count').textContent));
+console.log('font applied:', await p.evaluate(() => getComputedStyle(document.querySelector('.tip h2')).fontFamily.split(',')[0]));
+console.log('console errs:', errs.length ? errs : 'none');
+console.log('failed reqs :', failed.length ? failed : 'none');
+await b.close();
