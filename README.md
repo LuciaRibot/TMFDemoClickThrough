@@ -13,17 +13,17 @@ screenshot; the hotspots were measured from the running DOM.
 `dist/` is the whole site: one `index.html` with the steps inlined, plus
 `shots/`. No build step, no server, no credentials.
 
+Remote: **https://github.com/LuciaRibot/TMFDemoClickThrough**
+
 ```bash
 cd ~/Desktop/tmf-demo-clickthrough
-git init && git add -A && git commit -m "TMF portal walkthrough"
-git branch -M main
-git remote add origin git@github.com:<you>/tmf-portal-walkthrough.git
 git push -u origin main
 ```
 
 Then in **Settings → Pages**, set *Source* to **Deploy from a branch**,
 branch `main`, folder **`/dist`**. The site appears at
-`https://<you>.github.io/tmf-portal-walkthrough/`.
+
+**https://luciaribot.github.io/TMFDemoClickThrough/**
 
 If you would rather publish from the repository root, move the contents of
 `dist/` up one level and set the folder to `/ (root)`.
